@@ -6,6 +6,8 @@ August 8, 2019
 Intro
 -----
 
+UPDATE: I have written a bash script that will automate this process. See the bottom of this post for details.
+
 I recently needed to download some data from GEO/ENCODE to see if a handful of TFs had ChIP-grade antibodies that actually work well. The idea was pretty simple: download some bigWigs, throw them onto IGV, and see how good the peaks looked. This worked out well enough for samples that had data from the ENCODE project, where bigWigs seem to be preferred. However, for one of my TFs of interest, I could only find data by searching GEO directly, and the single study with ChIP only provided bedGraph files. Not wanting to download raw fastqs just to get bigWigs, I started searching for ways to convert the format. For reference, here are the links to the GEO data (it's replicates of the same ChIP): [rep1](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM2902699) [rep2](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM2902700)
 
 UCSC has some detailed information about the [bedGraph format](https://genome.ucsc.edu/goldenPath/help/bedgraph.html) and about the [bigWig format](https://genome.ucsc.edu/goldenpath/help/bigWig.html). Simply put, bedGraphs contain the same coordinate information as a bed file, but also a 4th column of values that represent the seqeuncing coverage in that region. On the other hand, bigWigs are indexed binaries of this information. More reading can be found [on Biostars.](https://www.biostars.org/p/113452/)
@@ -42,7 +44,7 @@ Now that we have our bedGraph file all prepared, we can use the tool we download
 Next, we have to make the executable file *actually* executable:
 
 ``` bash
-chmod +ux bedGraphToBigWig
+chmod u+x bedGraphToBigWig
 ```
 
 Now, run the following code to convert an individual file:
@@ -60,7 +62,25 @@ Conclusion
 
 That basically does it. You should now have all your bedGraphs converted to bigWigs. Just drag them onto IGV, and you should be good to go. This process helps you make the files more portable (for example, one of my files went from &gt;650MB to just over 120MB) and circumvents some issues with the UCSC browser itself (i.e., it only takes files up to 500MB).
 
-To Do
------
+Running the bash script to convert all files
+--------------------------------------------
 
--   Make wrapper function to convert all bedGraphs in a directory
+The bash script can be found in this repository. It's called `ConvertBedGraphsToBigWigs.sh`. It assumes a few things:
+
+-   You have downloaded the correct bedGraphToBigWig binary for your OS and have placed it in the same directory as your bedGraph files
+-   The shell script itself is also placed in this directory
+-   The bedGraphs aren't compressed (i.e., they need to be unzipped if originially in .gz format, etc.)
+
+Before you run the file, there are two additional lines you need to run. First, navigate to the directory containing your bedGraph files, the binary downloaded from UCSC, and the shell script. Now run the following lines
+
+``` bash
+chmod u+x ConvertBedGraphsToBigWigs.sh bedGraphToBigWig
+```
+
+This will ensure both files are executable. Next, to run the shell script, simply enter the following into the terminal and press enter:
+
+``` bash
+bash ConvertBedGraphsToBigWigs.sh
+```
+
+The script will the begin converting all of the bedGraph files in your directory into bigWigs. You will still have the bedGraphs in case you want/need them for some other analysis. The script will also print progress messages in the terminal window, so you can check how many bedGraph files you will be converting and which file the script is working on. The script will also print a message in the terminal upon converting all the bedGraphs, so that you know when everything is done.
